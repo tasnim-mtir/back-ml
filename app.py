@@ -6,7 +6,6 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)  
 
-# Load the trained models and scaler
 with open('naive_bayes_model_bmicase.pkl', 'rb') as bmicase_model_file:
     nb_model_bmicase = pickle.load(bmicase_model_file)
 
@@ -20,30 +19,23 @@ with open('scaler.pkl', 'rb') as scaler_file:
 def get_recommendation():
     if request.is_json:
         try:
-            # Parse JSON request
             data = request.get_json()
             gender = data.get('gender')
             age = int(data.get('age'))
             weight = float(data.get('weight'))
             height = float(data.get('height'))
 
-            # Calculate BMI
             bmi = weight / (height ** 2)
 
-            # Convert gender to numeric value
             gender_numeric = 1 if gender.lower() == 'male' else 2
 
-            # Prepare features array
             features = np.array([[weight, height, bmi, gender_numeric, age]])
 
-            # Scale features
             features_scaled = scaler.transform(features)
 
-            # Predict BMI case and exercise recommendation
             bmicase_prediction = nb_model_bmicase.predict(features_scaled)[0]
             exercise_plan_prediction = nb_model_exercise.predict(features_scaled)[0]
 
-            # Prepare the response
             recommendation = {
                 "BMI": round(bmi, 2),
                 "BMIcase": bmicase_prediction,
